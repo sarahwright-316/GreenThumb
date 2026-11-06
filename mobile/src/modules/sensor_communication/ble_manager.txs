@@ -1,128 +1,143 @@
-import {NativeEventEmitter, StyleSheet, Text, TouchableOpacity, useColorScheme, View} from 'react-native'
-import React from 'react'
-import BleManager from 'react-native-ble-manager'
-import useState from 'react-native'
-import { useEffect } from 'react'; 
-import { NativeModules } from 'react-native';
 
-
+import BleManager from 'react-native-ble-manager';
+import React, {useState, useEffect} from 'react';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  FlatList,
+} from 'react-native';
 
 const ConnectDevice = () => {
-    const [isScanning, setScanning] = useState(false)
-    const [bleDevices, setDevices] = useState([])
-    const BleManagerModule = NativeModules.BleManager
-    const BleManagerEmitter = new NativeEventEmitter(BleManagerModule)
+  const [isScanning, setScanning] = useState(false);
+  const [bleDevices, setDevices] = useState([]);
 
+  useEffect(() => {
+    BleManager.start({showAlert: false})
+      .then(() => {
+        console.log('Module Initialized');
+        startScanning();
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  }, []);
 
-    useEffect (() =>
-        BleManager.start ({showAlert: false}).then(() => {
-            console.log("Module Initialized");
-        })
-    )
+  useEffect(() => {
+    const stopListener = BleManager.onStopScan(() => {
+      setScanning(false);
+      handleGetConnectedDevices();
+      console.log('Stop Scanning');
+    });
 
-    useEffect (() => {
-        let stopListener = BleManagerEmitter.addListener('BleManagerStopScan',
-            () => {
-                setScanning(false)
-                handleGetConnectedDevices()
-                console.log("Stop Scanning")
-            }
-        )
-        return () => stopListener.remove()
-    }, [])
+    return () => stopListener.remove();
+  }, []);
 
-    const startScanning = () => {
-        if (!isScanning){
-            BleManager.scan({ serviceUUIDs: [], seconds: 5,   allowDuplicates: false }).then(() => {
-            // Success code
-            console.log("Scan started");
-            setScanning(true)
-            }). catch((error => {
-                console.error(error)
-            }))
+  const startScanning = () => {
+    BleManager.scan({
+      serviceUUIDs: [],
+      seconds: 5,
+      allowDuplicates: false,
+    })
+      .then(() => {
+        console.log('Scan started');
+        setScanning(true);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  };
+
+  const handleGetConnectedDevices = () => {
+    BleManager.getDiscoveredPeripherals()
+      .then(result => {
+        if (result.length === 0) {
+          console.log('No Devices Found');
+          startScanning();
+        } else {
+          console.log('RESULT', JSON.stringify(result));
+          const allDevices = result.filter(item => item.name !== null);
+          setDevices(allDevices);
         }
-    }
 
-    const handleGetConnectedDevices = () => {
-        BleManager.getDiscoveredPeripherals().then((result ) => {
-            if(result.length === 0){
-                console.log("No Devices Found")
-                startScanning()
-            }
+        console.log('Discovered peripherals:', result);
+      })
+      .catch(error => {
+        console.error(error);
+      });
+  };
 
-            else {
-                console.log("RESULT", JSON.stringify(result))
-                const allDevices = result.filter((item) => item.name === null)
-                setDevices(allDevices)
-            }
-                // Success code
-            console.log("Discovered peripherals: " + result);
-        });
-    }
-
-    const renderItem = ({item, index}) => {
-        return (
-            <View styles = {styles.bleCard}>
-                <Text style = {styles.bleTxt}>(item.name)</Text>
-                <TouchableOpacity>
-                    <Text style = {styles.bntTxt}> Connect </Text>
-                </TouchableOpacity>
-
-            </View>
-        )
-    }
-
+  const renderItem = ({item, index}) => {
     return (
-    <View style = {styles.container}> 
-    isScanning? <View style = {styles.rippleView}>
-        <RippleEffect/>
-    </View>:<View>
-        <FlatList
-        data = {bleDevices}
-        keyExtractor = {(item, index) =>index.toString()}
-        renderItem = {renderItem}
-        />
+      <View style={styles.bleCard}>
+        <Text style={styles.bleTxt}>{item.name}</Text>
+        <TouchableOpacity style={styles.button}>
+          <Text style={styles.bntTxt}>Connect</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {isScanning ? (
+        <View style={styles.rippleView}>
+          <Text>Scanning for devices...</Text>
         </View>
+      ) : (
+        <View>
+          <FlatList
+            data={bleDevices}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={renderItem}
+          />
+        </View>
+      )}
     </View>
-    )
-}
+  );
+};
 
 const styles = StyleSheet.create({
-    container:
-    {
-        flex: 1
-    },
+  container: {
+    flex: 1,
+  },
 
-    rippleView: 
-    {
-        flex:1, justifyContent: "center",
-        alignItems: "center"
-    },
+  rippleView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
-    bleCard: {
-        width: "90%",
-        padding: 10,
-        alignSelf: "center", 
-        marginVertical: 10, 
-        backgroundColor: useColorScheme.secondary,
-        elevation: 5,
-        borderRadius: 5,
-        flexDirection: "row",
-        justifyContent: "space-between"
+  bleCard: {
+    width: '90%',
+    padding: 10,
+    alignSelf: 'center',
+    marginVertical: 10,
+    backgroundColor: '#eeeeee',
+    borderRadius: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
 
-    },
+  bleTxt: {
+    fontSize: 18,
+    color: 'black',
+  },
 
-    bleTxt :
-    {
-        fontFamily: fonts.bold,
-        fontSize: fontSize.font18,
-        color: colors.text
-    },
+  bntTxt: {
+    fontSize: 18,
+    color: 'white',
+  },
 
-    bntTxt: 
-    {
-        fontFamily: fonts.bold,
-        fontSize: fontSize.font18,
-        color: colors.white
-    }
-})
+  button: {
+    width: 100,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 5,
+    backgroundColor: 'blue',
+  },
+});
+
+export default ConnectDevice;
