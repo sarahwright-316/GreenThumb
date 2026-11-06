@@ -1,4 +1,4 @@
-import {Stylesheet, Text, View} from 'react-native'
+import {StyleSheet, Text, View} from 'react-native'
 import React from 'react'
 import BleManager from 'react-native-ble-manager'
 
@@ -12,4 +12,11 @@ UseEffect (() =>
         console.log("Module Initialized");
     })
 )
+
+const startScanning = () => {
+    BleManager.scan({ serviceUUIDs: [], seconds: 5 }).then(() => {
+    // Success code
+    console.log("Scan started");
+});
+}
 //left off with asking chat about ios permissions 
