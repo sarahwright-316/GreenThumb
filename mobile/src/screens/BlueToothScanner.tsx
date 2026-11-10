@@ -1,11 +1,14 @@
-import {Text, View} from 'react-native';
+import React from 'react';
+import {View, Text} from 'react-native';
+import ConnectDevice from '../modules/sensor_communication/ble_manager';
 
-function BlueToothScanner() {
+function BluetoothScanner() {
   return (
-     <View style={{paddingTop: 10, paddingLeft: 20}}>
-      <Text>Find Your GreenThumb Light Sensor! hehe</Text>
+    <View style={{flex: 1, padding: 20}}>
+      <Text>Bluetooth Scanner</Text>
+      <ConnectDevice />
     </View>
   );
 }
 
-export default BlueToothScanner;
+export default BluetoothScanner;

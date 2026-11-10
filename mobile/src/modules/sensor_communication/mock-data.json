@@ -1,0 +1,22 @@
+{
+  "datasets": [
+    {
+      "light_data": [
+        { "lux": 500, "timestamp": "2026-11-08T12:00:00Z" },
+        { "lux": 750, "timestamp": "2026-11-08T12:15:00Z" }
+      ]
+    },
+    {
+      "light_data": [
+        { "lux": 50000, "timestamp": "2026-11-08T12:00:00Z" },
+        { "lux": 60000, "timestamp": "2026-11-08T12:15:00Z" }
+      ]
+    },
+    {
+      "light_data": [
+        { "lux": 15000, "timestamp": "2026-11-08T12:00:00Z" },
+        { "lux": 25000, "timestamp": "2026-11-08T12:15:00Z" }
+      ]
+    }
+  ]
+}
